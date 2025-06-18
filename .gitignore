@@ -1,0 +1,80 @@
+# Node.js (frontend & mobile)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js build output
+fundotai-frontend/.next/
+fundotai-frontend/out/
+
+# React Native
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/ios/Pods/
+mobile/ios/DerivedData/
+mobile/.expo/
+mobile/.idea/
+mobile/*.iml
+
+# FastAPI (Python)
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+*.sqlite3
+*.db
+
+# Logs
+*.log
+logs/
+
+# Render deployment config
+render.yaml
+
+# Docker artifacts
+*.pid
+*.sock
+*.tar
+*.img
+Dockerfile
+
+# pnpm cache (if ever used)
+.pnpm-store/
+
+# Cache/build folders
+.cache/
+dist/  # just in case you have manual builds in backend/frontend
+
+# Optional: if you ever use .env.*.local structure
+.env.local
+.env.*.local
+
+# Python virtual environments
+venv/
+.env/
+.env.* # for dotenv files (optional)
+
+# VS Code / JetBrains IDEs
+.vscode/
+.idea/
+
+# macOS system files
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+htmlcov/
+
+# Testing
+.pytest_cache/
+
+# Others (if using Docker or other build tools)
+docker-compose.override.yml
+*.local
