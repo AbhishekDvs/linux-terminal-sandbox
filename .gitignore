@@ -32,15 +32,11 @@ build/
 *.log
 logs/
 
-# Render deployment config
-render.yaml
-
 # Docker artifacts
 *.pid
 *.sock
 *.tar
 *.img
-Dockerfile
 
 # pnpm cache (if ever used)
 .pnpm-store/

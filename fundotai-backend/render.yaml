@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: sandbox-terminal-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
