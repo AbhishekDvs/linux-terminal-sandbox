@@ -3,5 +3,6 @@ services:
     name: sandbox-terminal-backend
     runtime: docker
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./fundotai-backend/Dockerfile
+    dockerContext: ./fundotai-backend
     autoDeploy: true
