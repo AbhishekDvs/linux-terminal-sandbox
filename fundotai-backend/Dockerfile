@@ -2,16 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements.txt first to leverage Docker cache
-COPY requirements.txt .
+COPY . /app
 
-# Install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Now copy the rest
-COPY . .
-
-# Create logs folder
 RUN mkdir -p logs
 
 EXPOSE 10000
