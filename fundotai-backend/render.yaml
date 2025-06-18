@@ -1,8 +1,11 @@
 services:
   - type: web
-    name: sandbox-terminal-backend
+    name: FunDotAI
     runtime: docker
     plan: free
-    dockerfilePath: ./fundotai-backend/Dockerfile
-    dockerContext: ./fundotai-backend
+    repo: https://github.com/AbhishekDvs/FunDotAI
+    branch: main
+    rootDir: fundotai-backend
+    dockerfilePath: Dockerfile
+    buildCommand: "true"
     autoDeploy: true
