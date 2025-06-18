@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY . /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies directly
+RUN pip install --no-cache-dir fastapi uvicorn[standard] httpx docker
 
 RUN mkdir -p logs
 
