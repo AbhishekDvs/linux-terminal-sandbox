@@ -27,5 +27,5 @@ ENV PORT=10000
 
 EXPOSE $PORT
 
-# Start the application
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
+# Start the application with explicit port handling
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
