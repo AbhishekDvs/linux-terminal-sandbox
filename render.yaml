@@ -9,6 +9,4 @@ services:
     dockerfilePath: Dockerfile
     buildCommand: "true"
     autoDeploy: true
-    envVars:
-      - key: PORT
-        value: 10000
+    # Remove the envVars section - Render will set PORT automatically
