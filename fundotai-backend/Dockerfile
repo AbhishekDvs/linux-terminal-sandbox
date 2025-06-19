@@ -4,6 +4,13 @@ WORKDIR /app
 
 # Install system dependencies (common Linux tools for terminal commands)
 RUN apt-get update && apt-get install -y \
+    coreutils \
+    util-linux \
+    procps \
+    findutils \
+    grep \
+    sed \
+    gawk \
     curl \
     wget \
     git \
@@ -22,10 +29,10 @@ RUN pip install --no-cache-dir fastapi uvicorn[standard] httpx
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Use PORT environment variable from Render
-ENV PORT=10000
+# Get PORT from environment or default to 10000
+ENV PORT=${PORT:-10000}
 
 EXPOSE $PORT
 
-# Start the application with explicit port handling
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
+# Start with explicit port binding and logging
+CMD ["sh", "-c", "echo 'Starting on port '$PORT && uvicorn main:app --host 0.0.0.0 --port $PORT --log-level info"]
