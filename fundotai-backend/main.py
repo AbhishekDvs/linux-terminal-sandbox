@@ -249,6 +249,17 @@ DANGEROUS_PATTERNS = [
     "rm ", "sudo ", "su ", "..", "../", "~/"
 ]
 
+# Allowed base commands (safe commands only)
+ALLOWED_COMMANDS = {
+    "ls", "cat", "echo", "whoami", "pwd", "uname", "date", "uptime", "ps", "df",
+    "head", "tail", "touch", "mkdir", "cp", "mv",
+    "grep", "sed", "awk", "sort", "uniq", "wc",
+    "python3", "node", "git", "gcc", "java", "npm", "pip",
+    "curl", "wget", "ping", "nslookup",
+    "tar", "zip", "unzip", "gzip"
+}
+
+
 def is_command_safe(command: str) -> tuple[bool, str]:
     """Check if a command is safe to execute"""
     
