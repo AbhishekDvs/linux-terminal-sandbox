@@ -18,7 +18,29 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  openGraph: {
+    title: 'Linux Terminal Sandbox',
+    description: 'Try out Linux commands directly in your web browser!',
+    url: 'https://terminalsandbox.pages.dev',
+    siteName: 'Linux Terminal Sandbox',
+    images: [
+      {
+        url: '/og-image.png', // ✅ Place this image in your /public folder
+        width: 1200,
+        height: 630,
+        alt: 'Linux Terminal UI Preview',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Linux Terminal Sandbox',
+    description: 'Try out Linux commands directly in your browser!',
+    images: ['/og-image.png'], // Same as above
+  },
 };
+
 
 export default function RootLayout({
   children,
