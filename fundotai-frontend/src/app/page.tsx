@@ -3,32 +3,42 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:10000'; // Update this to your actual API base URL
+const API_BASE = 'http://localhost:10000';
 
 export default function TerminalPage() {
   const [sessionId, setSessionId] = useState('');
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>([]);
+  const [allowedCommands, setAllowedCommands] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when new output is added
   useEffect(() => {
     terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
   }, [history]);
 
-  // Create session on mount
   useEffect(() => {
     const createSession = async () => {
       try {
         const res = await axios.post(`${API_BASE}/create-session`, { distro: 'linux' });
         setSessionId(res.data.session_id);
         setHistory(prev => [...prev, `🟢 New session started (id: ${res.data.session_id})`]);
-      } catch (err) {
+      } catch {
         setHistory(prev => [...prev, '❌ Failed to create session']);
       }
     };
+
+    const fetchAllowedCommands = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/allowed-commands`);
+        setAllowedCommands(res.data.allowed_commands || []);
+      } catch {
+        console.error('❌ Failed to load allowed commands');
+      }
+    };
+
     createSession();
+    fetchAllowedCommands();
   }, []);
 
   const handleCommand = async () => {
@@ -54,25 +64,60 @@ export default function TerminalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-4">
-      <h1 className="text-xl font-bold mb-4">🧪 Sandboxed Terminal</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center p-6 transition-colors duration-300">
+
+      <h1 className="text-2xl font-bold mb-6 drop-shadow-lg">🧪 Linux Terminal Sandbox</h1>
+
       <div
         ref={terminalRef}
-        className="w-full max-w-3xl h-[400px] overflow-y-auto bg-gray-900 p-4 rounded mb-4 font-mono text-sm border border-gray-700"
+           className="w-full max-w-3xl h-[400px] overflow-y-auto 
+             bg-gray-100 dark:bg-gray-900 p-4 rounded mb-4 
+             font-mono text-sm border border-gray-300 dark:border-gray-700 
+             custom-scrollbar"
       >
-        {history.map((line, i) => (
-          <div key={i} className="whitespace-pre-wrap">{line}</div>
-        ))}
+        {history.map((line, i) => {
+          let style = "text-white";
+          if (line.startsWith(">")) style = "text-cyan-400";
+          else if (line.includes("✅")) style = "text-green-400";
+          else if (line.includes("❌")) style = "text-pink-500";
+          else if (line.includes("🟢")) style = "text-blue-400";
+
+          return (
+            <div key={i} className={`whitespace-pre-wrap ${style}`}>
+              {line}
+            </div>
+          );
+        })}
+
       </div>
+
       <input
         type="text"
-        className="w-full max-w-3xl px-4 py-2 rounded bg-gray-800 text-white border border-gray-600 outline-none font-mono"
+        className="w-full max-w-4xl px-4 py-2 mb-4 rounded-xl bg-white/10 backdrop-blur-md text-white placeholder-white/50 border border-white/20 outline-none font-mono transition-all focus:ring-2 focus:ring-cyan-400 shadow-md"
         placeholder={isLoading ? 'Running...' : 'Enter command...'}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyPress}
         disabled={isLoading}
       />
+
+      {allowedCommands.length > 0 && (
+        <details className="w-full max-w-4xl bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 shadow-lg">
+          <summary className="cursor-pointer text-sm text-cyan-300 font-semibold">
+            📜 View Allowed Commands ({allowedCommands.length})
+          </summary>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs text-white/80">
+            {allowedCommands.map((cmd, idx) => (
+              <div
+                key={idx}
+                className="bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md border border-white/20 text-center hover:bg-white/20 transition"
+              >
+                {cmd}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

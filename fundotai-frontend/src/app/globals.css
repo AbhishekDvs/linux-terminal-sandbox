@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: linear-gradient(to bottom, #00fff7, #8a2be2);
+  box-shadow: 0 0 6px #00fff7, 0 0 10px #8a2be2;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #00fff7, #ff00cc);
+  box-shadow: 0 0 8px #00fff7, 0 0 12px #ff00cc;
+}
+
+/* Firefox support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #00fff7 transparent;
+}
+
