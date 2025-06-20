@@ -30,7 +30,7 @@ RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 # Get PORT from environment or default to 10000
-ENV PORT=${PORT:-10000}
+ENV PORT=10000
 
 EXPOSE $PORT
 

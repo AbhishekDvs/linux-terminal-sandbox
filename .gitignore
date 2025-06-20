@@ -38,6 +38,12 @@ logs/
 *.tar
 *.img
 
+# Environment variable files (protect sensitive credentials)
+.env
+.env.*
+!.env.example
+
+
 # pnpm cache (if ever used)
 .pnpm-store/
 
