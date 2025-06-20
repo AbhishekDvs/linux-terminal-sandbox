@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:10000';
+// const API_BASE = 'http://localhost:10000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
 
 export default function TerminalPage() {
   const [sessionId, setSessionId] = useState('');
@@ -16,6 +18,28 @@ export default function TerminalPage() {
   useEffect(() => {
     terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
   }, [history]);
+
+    useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
 
   useEffect(() => {
     const createSession = async () => {
@@ -51,9 +75,13 @@ export default function TerminalPage() {
     try {
       const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
       setHistory(prev => [...prev, res.data.output || '✅ No output']);
-    } catch (err: any) {
-      const msg = err.response?.data?.output || '❌ Error executing command';
-      setHistory(prev => [...prev, msg]);
+    }catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const msg = err.response?.data?.output || '❌ Error executing command';
+        setHistory(prev => [...prev, msg]);
+      } else {
+        setHistory(prev => [...prev, '❌ Unknown error occurred']);
+      }
     } finally {
       setIsLoading(false);
     }
