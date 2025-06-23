@@ -3,15 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
-// const API_BASE = 'http://localhost:10000';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
+type CommandInfo = {
+  command: string;
+  description: string;
+};
+
+type GroupedCommands = Record<string, CommandInfo[]>;
 
 export default function TerminalPage() {
   const [sessionId, setSessionId] = useState('');
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>([]);
-  const [allowedCommands, setAllowedCommands] = useState<string[]>([]);
+  const [groupedCommands, setGroupedCommands] = useState<GroupedCommands>({});
   const [isLoading, setIsLoading] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
 
@@ -19,7 +24,7 @@ export default function TerminalPage() {
     terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
   }, [history]);
 
-    useEffect(() => {
+  useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -40,7 +45,6 @@ export default function TerminalPage() {
     };
   }, []);
 
-
   useEffect(() => {
     const createSession = async () => {
       try {
@@ -55,7 +59,7 @@ export default function TerminalPage() {
     const fetchAllowedCommands = async () => {
       try {
         const res = await axios.get(`${API_BASE}/allowed-commands`);
-        setAllowedCommands(res.data.allowed_commands || []);
+        setGroupedCommands(res.data.grouped_commands || {});
       } catch {
         console.error('❌ Failed to load allowed commands');
       }
@@ -65,17 +69,37 @@ export default function TerminalPage() {
     fetchAllowedCommands();
   }, []);
 
-  const handleCommand = async () => {
-    if (!input.trim() || !sessionId) return;
-    const command = input.trim();
-    setHistory(prev => [...prev, `> ${command}`]);
+  const handleCommand = async (cmd?: string) => {
+    let command = cmd ?? input.trim();
+    if (!command || !sessionId) return;
+
+    const baseCmd = command.split(' ')[0].toLowerCase();
+    const allCommands = Object.values(groupedCommands).flat();
+    const matched = allCommands.find(c => c.command.toLowerCase() === baseCmd);
+
+    if (!matched) {
+      setHistory(prev => [...prev, `> ${command}`, '❌ Command not allowed or recognized']);
+      return;
+    }
+
+    if (cmd === undefined && baseCmd !== matched.command) {
+      setHistory(prev => [
+        ...prev,
+        `> ${command}`,
+        `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
+      ]);
+      command = command.replace(baseCmd, matched.command);
+    } else {
+      setHistory(prev => [...prev, `> ${command}`]);
+    }
+
     setInput('');
     setIsLoading(true);
 
     try {
       const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
       setHistory(prev => [...prev, res.data.output || '✅ No output']);
-    }catch (err: unknown) {
+    } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const msg = err.response?.data?.output || '❌ Error executing command';
         setHistory(prev => [...prev, msg]);
@@ -87,28 +111,29 @@ export default function TerminalPage() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleCommand();
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center p-6 transition-colors duration-300">
-
-      <h1 className="text-2xl font-bold mb-6 drop-shadow-lg">🧪 Linux Terminal Sandbox</h1>
+      <h1 className="text-2xl font-bold mb-4 drop-shadow-lg">🧪 Linux Terminal Sandbox</h1>
+      <div className="w-full max-w-4xl mb-6 p-4 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 shadow-md transition hover:shadow-lg">
+        <p className="text-sm text-white/80 leading-relaxed text-center">
+          ⚙️ <span className="font-semibold text-white">Welcome to The Linux Terminal Sandbox!</span> <br />
+          You're in a secure, browser-based environment built on a{' '}
+          <span className="text-cyan-300 font-semibold">Debian-like distro</span>.
+          <br className="my-2" />
+          💡 <span className="text-cyan-300 font-semibold">Tip:</span> Tap any command in the list below to instantly run it in the terminal.
+        </p>
+      </div>
 
       <div
         ref={terminalRef}
-           className="w-full max-w-3xl h-[400px] overflow-y-auto 
-             bg-gray-100 dark:bg-gray-900 p-4 rounded mb-4 
-             font-mono text-sm border border-gray-300 dark:border-gray-700 
-             custom-scrollbar"
+        className="w-full max-w-4xl h-[300px] overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 rounded mb-4 font-mono text-sm border border-gray-300 dark:border-gray-700 custom-scrollbar"
       >
         {history.map((line, i) => {
-          let style = "text-white";
-          if (line.startsWith(">")) style = "text-cyan-400";
-          else if (line.includes("✅")) style = "text-green-400";
-          else if (line.includes("❌")) style = "text-pink-500";
-          else if (line.includes("🟢")) style = "text-blue-400";
+          let style = 'text-white';
+          if (line.startsWith('>')) style = 'text-cyan-400';
+          else if (line.includes('✅')) style = 'text-green-400';
+          else if (line.includes('❌')) style = 'text-pink-500';
+          else if (line.includes('🟢')) style = 'text-blue-400';
 
           return (
             <div key={i} className={`whitespace-pre-wrap ${style}`}>
@@ -116,7 +141,6 @@ export default function TerminalPage() {
             </div>
           );
         })}
-
       </div>
 
       <input
@@ -125,26 +149,38 @@ export default function TerminalPage() {
         placeholder={isLoading ? 'Running...' : 'Enter command...'}
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyPress}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleCommand();
+        }}
         disabled={isLoading}
       />
 
-      {allowedCommands.length > 0 && (
-        <details className="w-full max-w-4xl bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 shadow-lg">
-          <summary className="cursor-pointer text-sm text-cyan-300 font-semibold">
-            📜 View Allowed Commands ({allowedCommands.length})
-          </summary>
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs text-white/80">
-            {allowedCommands.map((cmd, idx) => (
-              <div
-                key={idx}
-                className="bg-white/10 backdrop-blur-sm px-2 py-1 rounded-md border border-white/20 text-center hover:bg-white/20 transition"
-              >
-                {cmd}
+      {Object.keys(groupedCommands).length > 0 && (
+        <div className="w-full max-w-4xl space-y-4 mt-4">
+          {Object.entries(groupedCommands).map(([groupName, commands]) => (
+            <details
+              key={groupName}
+              className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 shadow-lg"
+              open={groupName === 'filesystem'} // open default group
+            >
+              <summary className="cursor-pointer text-sm text-cyan-300 font-semibold capitalize">
+                📂 {groupName} ({commands.length})
+              </summary>
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-white/90 text-sm">
+                {commands.map(({ command, description }) => (
+                  <div
+                    key={command}
+                    onClick={() => handleCommand(`${command} --help`)}
+                    className="bg-white/5 border border-white/10 rounded-lg p-3 hover:cursor-pointer hover:bg-white/10 transition"
+                  >
+                    <span className="block text-cyan-300 font-mono">{command}</span>
+                    <p className="text-white/70 text-xs mt-1">{description}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </details>
+            </details>
+          ))}
+        </div>
       )}
     </div>
   );
