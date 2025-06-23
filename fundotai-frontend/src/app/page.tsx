@@ -116,12 +116,12 @@ export default function TerminalPage() {
       <h1 className="text-2xl font-bold mb-4 drop-shadow-lg">🧪 Linux Terminal Sandbox</h1>
       <div className="w-full max-w-4xl mb-6 p-4 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 shadow-md transition hover:shadow-lg">
         <p className="text-sm text-white/80 leading-relaxed text-center">
-          ⚙️ <span className="font-semibold text-white">Welcome to The Linux Terminal Sandbox!</span> <br />
-          You're in a secure, browser-based environment built on a{' '}
-          <span className="text-cyan-300 font-semibold">Debian-like distro</span>.
-          <br className="my-2" />
-          💡 <span className="text-cyan-300 font-semibold">Tip:</span> Tap any command in the list below to instantly run it in the terminal.
-        </p>
+        ⚙️ <span className="font-semibold text-white">Welcome to The Linux Terminal Sandbox!</span> <br />
+        You&apos;re in a secure, browser-based environment built on a <span className="text-cyan-300 font-semibold">Debian-like distro</span>.
+        <br className="my-2" />
+        💡 <span className="text-cyan-300 font-semibold">Tip:</span> Tap any command in the list below to instantly run it in the terminal.
+      </p>
+
       </div>
 
       <div
