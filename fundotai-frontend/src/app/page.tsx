@@ -19,6 +19,10 @@ export default function TerminalPage() {
   const [groupedCommands, setGroupedCommands] = useState<GroupedCommands>({});
   const [isLoading, setIsLoading] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
 
   useEffect(() => {
     terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
@@ -46,28 +50,28 @@ export default function TerminalPage() {
   }, []);
 
   useEffect(() => {
-    const createSession = async () => {
+    const init = async () => {
       try {
-        const res = await axios.post(`${API_BASE}/create-session`, { distro: 'linux' });
-        setSessionId(res.data.session_id);
-        setHistory(prev => [...prev, `🟢 New session started (id: ${res.data.session_id})`]);
-      } catch {
-        setHistory(prev => [...prev, '❌ Failed to create session']);
+        const [sessionRes, commandsRes] = await Promise.all([
+          axios.post(`${API_BASE}/create-session`, { distro: 'linux' }),
+          axios.get(`${API_BASE}/allowed-commands`)
+        ]);
+
+        setSessionId(sessionRes.data.session_id);
+        setHistory(prev => [...prev, `🟢 New session started (id: ${sessionRes.data.session_id})`]);
+        setGroupedCommands(commandsRes.data.grouped_commands || {});
+      } catch (err) {
+        setErrorMessage('❌ Failed to initialize terminal. Please try again later.');
+        console.error(err);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
-    const fetchAllowedCommands = async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/allowed-commands`);
-        setGroupedCommands(res.data.grouped_commands || {});
-      } catch {
-        console.error('❌ Failed to load allowed commands');
-      }
-    };
-
-    createSession();
-    fetchAllowedCommands();
+    init();
+    setIsMounted(true);
   }, []);
+
 
   const animateOutput = (text: string) => {
   let index = 0;
@@ -143,51 +147,30 @@ export default function TerminalPage() {
   }
 };
 
+  if (!isMounted || isInitializing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mb-4"></div>
+        <p className="text-sm text-white/80">Initializing terminal session...</p>
+      </div>
+    );
+  }
 
-  // const handleCommand = async (cmd?: string) => {
-  //   let command = cmd ?? input.trim();
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-red-400 p-4">
+        <p className="text-lg font-semibold mb-2">🚫 Error</p>
+        <p className="text-sm">{errorMessage}</p>
+        <button
+          onClick={() => location.reload()}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
-  //   window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  //   if (!command || !sessionId) return;
-
-  //   const baseCmd = command.split(' ')[0].toLowerCase();
-  //   const allCommands = Object.values(groupedCommands).flat();
-  //   const matched = allCommands.find(c => c.command.toLowerCase() === baseCmd);
-
-  //   if (!matched) {
-  //     setHistory(prev => [...prev, `> ${command}`, '❌ Command not allowed or recognized']);
-  //     return;
-  //   }
-
-  //   if (cmd === undefined && baseCmd !== matched.command) {
-  //     setHistory(prev => [
-  //       ...prev,
-  //       `> ${command}`,
-  //       `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
-  //     ]);
-  //     command = command.replace(baseCmd, matched.command);
-  //   } else {
-  //     setHistory(prev => [...prev, `> ${command}`]);
-  //   }
-
-  //   setInput('');
-  //   setIsLoading(true);
-
-  //   try {
-  //     const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
-  //     setHistory(prev => [...prev, res.data.output || '✅ No output']);
-  //   } catch (err: unknown) {
-  //     if (axios.isAxiosError(err)) {
-  //       const msg = err.response?.data?.output || '❌ Error executing command';
-  //       setHistory(prev => [...prev, msg]);
-  //     } else {
-  //       setHistory(prev => [...prev, '❌ Unknown error occurred']);
-  //     }
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center p-6 transition-colors duration-300">
