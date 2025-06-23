@@ -126,7 +126,7 @@ export default function TerminalPage() {
 
       <div
         ref={terminalRef}
-        className="w-full max-w-4xl h-[300px] overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 rounded mb-4 font-mono text-sm border border-gray-300 dark:border-gray-700 custom-scrollbar"
+        className="w-full max-w-4xl h-[300px] overflow-y-auto bg-gray-900 p-4 rounded mb-4 font-mono text-sm border border-gray-700 custom-scrollbar"
       >
         {history.map((line, i) => {
           let style = 'text-white';
