@@ -69,50 +69,125 @@ export default function TerminalPage() {
     fetchAllowedCommands();
   }, []);
 
-  const handleCommand = async (cmd?: string) => {
-    let command = cmd ?? input.trim();
+  const animateOutput = (text: string) => {
+  let index = 0;
+  const delay = 10; // typing speed (ms per character)
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const typeChar = () => {
+    setHistory(prev => {
+      const lastLine = prev[prev.length - 1] || '';
+      const updated = [...prev];
+      updated[updated.length - 1] = lastLine + text.charAt(index);
+      return updated;
+    });
 
-    if (!command || !sessionId) return;
-
-    const baseCmd = command.split(' ')[0].toLowerCase();
-    const allCommands = Object.values(groupedCommands).flat();
-    const matched = allCommands.find(c => c.command.toLowerCase() === baseCmd);
-
-    if (!matched) {
-      setHistory(prev => [...prev, `> ${command}`, '❌ Command not allowed or recognized']);
-      return;
-    }
-
-    if (cmd === undefined && baseCmd !== matched.command) {
-      setHistory(prev => [
-        ...prev,
-        `> ${command}`,
-        `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
-      ]);
-      command = command.replace(baseCmd, matched.command);
-    } else {
-      setHistory(prev => [...prev, `> ${command}`]);
-    }
-
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
-      setHistory(prev => [...prev, res.data.output || '✅ No output']);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const msg = err.response?.data?.output || '❌ Error executing command';
-        setHistory(prev => [...prev, msg]);
-      } else {
-        setHistory(prev => [...prev, '❌ Unknown error occurred']);
-      }
-    } finally {
-      setIsLoading(false);
+    index++;
+    if (index < text.length) {
+      setTimeout(typeChar, delay);
     }
   };
+
+  // Start with an empty line
+  setHistory(prev => [...prev, '']);
+  typeChar();
+};
+
+
+  const handleCommand = async (cmd?: string) => {
+  let command = cmd ?? input.trim();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (!command || !sessionId) return;
+
+  const baseCmd = command.split(' ')[0].toLowerCase();
+  const allCommands = Object.values(groupedCommands).flat();
+  const matched = allCommands.find(c => c.command.toLowerCase() === baseCmd);
+
+  if (!matched) {
+    setHistory(prev => [...prev, `> ${command}`, '❌ Command not allowed or recognized']);
+    return;
+  }
+
+  if (cmd === undefined && baseCmd !== matched.command) {
+    setHistory(prev => [
+      ...prev,
+      `> ${command}`,
+      `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
+    ]);
+    command = command.replace(baseCmd, matched.command);
+  } else {
+    setHistory(prev => [...prev, `> ${command}`]);
+  }
+
+  setInput('');
+  setIsLoading(true);
+
+  try {
+    // Delay execution slightly for command click
+    await new Promise(res => setTimeout(res, 500));
+
+    const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
+    const output = res.data.output || '✅ No output';
+
+    // Simulate typing animation
+    animateOutput(output);
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const msg = err.response?.data?.output || '❌ Error executing command';
+      animateOutput(msg);
+    } else {
+      animateOutput('❌ Unknown error occurred');
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+  // const handleCommand = async (cmd?: string) => {
+  //   let command = cmd ?? input.trim();
+
+  //   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  //   if (!command || !sessionId) return;
+
+  //   const baseCmd = command.split(' ')[0].toLowerCase();
+  //   const allCommands = Object.values(groupedCommands).flat();
+  //   const matched = allCommands.find(c => c.command.toLowerCase() === baseCmd);
+
+  //   if (!matched) {
+  //     setHistory(prev => [...prev, `> ${command}`, '❌ Command not allowed or recognized']);
+  //     return;
+  //   }
+
+  //   if (cmd === undefined && baseCmd !== matched.command) {
+  //     setHistory(prev => [
+  //       ...prev,
+  //       `> ${command}`,
+  //       `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
+  //     ]);
+  //     command = command.replace(baseCmd, matched.command);
+  //   } else {
+  //     setHistory(prev => [...prev, `> ${command}`]);
+  //   }
+
+  //   setInput('');
+  //   setIsLoading(true);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
+  //     setHistory(prev => [...prev, res.data.output || '✅ No output']);
+  //   } catch (err: unknown) {
+  //     if (axios.isAxiosError(err)) {
+  //       const msg = err.response?.data?.output || '❌ Error executing command';
+  //       setHistory(prev => [...prev, msg]);
+  //     } else {
+  //       setHistory(prev => [...prev, '❌ Unknown error occurred']);
+  //     }
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center p-6 transition-colors duration-300">
