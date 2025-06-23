@@ -71,6 +71,9 @@ export default function TerminalPage() {
 
   const handleCommand = async (cmd?: string) => {
     let command = cmd ?? input.trim();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (!command || !sessionId) return;
 
     const baseCmd = command.split(' ')[0].toLowerCase();
