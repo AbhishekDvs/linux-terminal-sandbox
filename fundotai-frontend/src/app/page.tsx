@@ -12,10 +12,16 @@ type CommandInfo = {
 
 type GroupedCommands = Record<string, CommandInfo[]>;
 
+type HistoryLine = {
+  type: 'user' | 'system';
+  content: string;
+};
+
+
 export default function TerminalPage() {
   const [sessionId, setSessionId] = useState('');
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<HistoryLine[]>([]);
   const [groupedCommands, setGroupedCommands] = useState<GroupedCommands>({});
   const [isLoading, setIsLoading] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -57,8 +63,14 @@ export default function TerminalPage() {
           axios.get(`${API_BASE}/allowed-commands`)
         ]);
 
-        setSessionId(sessionRes.data.session_id);
-        setHistory(prev => [...prev, `🟢 New session started (id: ${sessionRes.data.session_id})`]);
+        console.log('Session ID:', sessionRes.data.data.session_id);
+        setSessionId(sessionRes.data.data.session_id);
+        setHistory(prev => [
+          ...prev,
+          { type: 'system', content: `🟢 New session started (id: ${sessionRes.data.data.session_id})` }
+        ]);
+
+
         setGroupedCommands(commandsRes.data.grouped_commands || {});
       } catch (err) {
         setErrorMessage('❌ Failed to initialize terminal. Please try again later.');
@@ -73,15 +85,23 @@ export default function TerminalPage() {
   }, []);
 
 
-  const animateOutput = (text: string) => {
+ const animateOutput = (text: string) => {
   let index = 0;
-  const delay = 10; // typing speed (ms per character)
+  const delay = 1; // Adjust typing speed here (ms per character)
 
   const typeChar = () => {
     setHistory(prev => {
-      const lastLine = prev[prev.length - 1] || '';
       const updated = [...prev];
-      updated[updated.length - 1] = lastLine + text.charAt(index);
+      const lastEntry = updated[updated.length - 1];
+
+      // Only update the last system message
+      if (lastEntry && lastEntry.type === 'system') {
+        updated[updated.length - 1] = {
+          ...lastEntry,
+          content: lastEntry.content + text.charAt(index)
+        };
+      }
+
       return updated;
     });
 
@@ -91,10 +111,11 @@ export default function TerminalPage() {
     }
   };
 
-  // Start with an empty line
-  setHistory(prev => [...prev, '']);
+  // Start by adding an empty system message
+  setHistory(prev => [...prev, { type: 'system', content: '' }]);
   typeChar();
 };
+
 
 
   const handleCommand = async (cmd?: string) => {
@@ -108,20 +129,27 @@ export default function TerminalPage() {
   const matched = allCommands.find(c => c.command.toLowerCase() === baseCmd);
 
   if (!matched) {
-    setHistory(prev => [...prev, `> ${command}`, '❌ Command not allowed or recognized']);
-    return;
-  }
+  setHistory(prev => [
+    ...prev,
+    { type: 'user', content: command },
+    { type: 'system', content: '❌ Command not allowed or recognized' }
+  ]);
+  return;
+}
 
-  if (cmd === undefined && baseCmd !== matched.command) {
-    setHistory(prev => [
-      ...prev,
-      `> ${command}`,
-      `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
-    ]);
-    command = command.replace(baseCmd, matched.command);
-  } else {
-    setHistory(prev => [...prev, `> ${command}`]);
-  }
+if (cmd === undefined && baseCmd !== matched.command) {
+  setHistory(prev => [
+    ...prev,
+    { type: 'user', content: command },
+    {
+      type: 'system',
+      content: `⚠️ Commands are case-sensitive. Interpreted as "${matched.command}"`
+    }
+  ]);
+  command = command.replace(baseCmd, matched.command);
+} else {
+  setHistory(prev => [...prev, { type: 'user', content: command }]);
+}
 
   setInput('');
   setIsLoading(true);
@@ -131,7 +159,7 @@ export default function TerminalPage() {
     await new Promise(res => setTimeout(res, 500));
 
     const res = await axios.post(`${API_BASE}/exec`, { session_id: sessionId, command });
-    const output = res.data.output || '✅ No output';
+    const output = res.data.data?.output || '✅ No output';
 
     // Simulate typing animation
     animateOutput(output);
@@ -189,19 +217,21 @@ export default function TerminalPage() {
         ref={terminalRef}
         className="w-full max-w-4xl h-[300px] overflow-y-auto bg-gray-900 p-4 rounded mb-4 font-mono text-sm border border-gray-700 custom-scrollbar"
       >
-        {history.map((line, i) => {
-          let style = 'text-white';
-          if (line.startsWith('>')) style = 'text-cyan-400';
-          else if (line.includes('✅')) style = 'text-green-400';
-          else if (line.includes('❌')) style = 'text-pink-500';
-          else if (line.includes('🟢')) style = 'text-blue-400';
+        {history.map((entry, i) => {
+            let style = 'text-white';
 
-          return (
-            <div key={i} className={`whitespace-pre-wrap ${style}`}>
-              {line}
-            </div>
-          );
-        })}
+            if (entry.type === 'user') style = 'text-cyan-400';
+            else if (entry.content.includes('✅')) style = 'text-green-400';
+            else if (entry.content.includes('❌')) style = 'text-pink-500';
+            else if (entry.content.includes('🟢')) style = 'text-blue-400';
+
+            return (
+              <div key={i} className={`whitespace-pre-wrap ${style}`}>
+                {entry.content}
+              </div>
+            );
+          })}
+
       </div>
 
       <input
@@ -211,6 +241,7 @@ export default function TerminalPage() {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
+          console.log("Key pressed:", e.key); // 🔍 Debug line
           if (e.key === 'Enter') handleCommand();
         }}
         disabled={isLoading}

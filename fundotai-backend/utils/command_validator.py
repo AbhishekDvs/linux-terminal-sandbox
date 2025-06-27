@@ -27,6 +27,55 @@ ALLOWED_COMMANDS = {
     "tar", "zip", "unzip", "gzip"
 }
 
+COMMAND_DESCRIPTIONS = {
+    "ls": "List directory contents",
+    "cat": "Display file content",
+    "echo": "Print text to terminal",
+    "whoami": "Show current user",
+    "pwd": "Show current directory",
+    "uname": "System info",
+    "date": "Show current date and time",
+    "uptime": "How long the system has been running",
+    "ps": "Display running processes",
+    "df": "Disk usage info",
+    "head": "Show beginning of a file",
+    "tail": "Show end of a file",
+    "touch": "Create empty file",
+    "mkdir": "Create new directory",
+    "cp": "Copy files and directories",
+    "mv": "Move/rename files",
+    "grep": "Search text using patterns",
+    "sed": "Stream editor for text transformations",
+    "awk": "Pattern scanning and processing",
+    "sort": "Sort text lines",
+    "uniq": "Filter unique lines",
+    "wc": "Word, line, character count",
+    "python3": "Run Python 3 code",
+    "node": "Run JavaScript code",
+    "git": "Version control tool",
+    "gcc": "C compiler",
+    "java": "Run Java programs",
+    "npm": "JavaScript package manager",
+    "pip": "Python package installer",
+    "curl": "Fetch data from URLs",
+    "wget": "Download files from web",
+    "ping": "Check server reachability",
+    "nslookup": "DNS lookup",
+    "tar": "Archive files",
+    "zip": "Compress files",
+    "unzip": "Extract zip files",
+    "gzip": "Compress/decompress files"
+}
+
+COMMAND_CATEGORIES = {
+    "filesystem": {"ls", "touch", "mkdir", "cp", "mv", "cat", "head", "tail"},
+    "system": {"whoami", "pwd", "uname", "uptime", "date", "df", "ps"},
+    "text": {"grep", "sed", "awk", "sort", "uniq", "wc"},
+    "devtools": {"git", "gcc", "java", "npm", "pip", "node", "python3"},
+    "network": {"curl", "wget", "ping", "nslookup"},
+    "archive": {"tar", "zip", "unzip", "gzip"},
+}
+
 def is_command_safe(command: str) -> tuple[bool, str]:
     try:
         command_parts = shlex.split(command.strip().lower())

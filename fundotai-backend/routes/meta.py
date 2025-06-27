@@ -10,7 +10,7 @@ router = APIRouter()
 @router.get("/")
 def root():
     return {
-        "status": "🚀 Sandbox Terminal API - Safe & Secure",
+        "status": "🚀SafeShell Sandbox Terminal API - Safe & Secure",
         "version": "2.0",
         "platform": "render-free-tier",
         "features": [

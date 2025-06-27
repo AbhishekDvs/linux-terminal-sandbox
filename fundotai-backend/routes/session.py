@@ -7,7 +7,7 @@ import uuid
 import tempfile
 
 from utils.logger import logger
-from utils.session_manager import create_session, delete_session_by_id, list_sessions
+from utils.session_manager import create_session, delete_session, list_sessions
 
 router = APIRouter()
 
@@ -20,7 +20,7 @@ def create_session_route(req: dict, request: Request):
         session_id = str(uuid.uuid4())
         temp_dir = tempfile.mkdtemp(prefix=f"session_{session_id[:8]}_")
 
-        create_session(session_id, req.get("distro"), temp_dir)
+        create_session(session_id, req.get("distro"))
 
         logger.info(f"✅ New session {session_id} created from {client_ip}")
         return {
@@ -39,7 +39,7 @@ def create_session_route(req: dict, request: Request):
 
 @router.delete("/session/{session_id}")
 def delete_session_route(session_id: str):
-    return delete_session_by_id(session_id)
+    return delete_session(session_id)
 
 
 @router.get("/sessions")
