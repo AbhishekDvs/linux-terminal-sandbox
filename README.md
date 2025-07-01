@@ -1,5 +1,3 @@
----
-````markdown
 # 🧪 Linux Terminal Sandbox
 
 A secure, browser-based Linux terminal simulation where users can execute safe commands in an isolated environment — built with **Next.js**, **FastAPI**, and **Docker**.
@@ -115,4 +113,4 @@ This project was built as a safe playground for learning Linux commands without 
 
 Made with 🧠 and ☕ by [Abhishek Dvs](https://github.com/abhishekdvs)
 
-```
+
