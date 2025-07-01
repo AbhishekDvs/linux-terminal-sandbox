@@ -5,19 +5,40 @@ from utils.logger import logger
 from routes.exec import router as exec_router
 from routes.session import router as session_router
 from routes.meta import router as meta_router
+import os
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+# Rate limiter config
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(title="SafeShell API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS Middleware
+# CORS Middleware (optional: restrict in prod)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://terminalsandbox.pages.dev/","http://localhost:10000","http://localhost:3000"],  # ✅ restrict to your deployed frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Log incoming IP addresses
+# 🛡️ Middleware: Origin-based protection
+@app.middleware("http")
+async def block_unknown_origins(request: Request, call_next):
+    allowed_origins = ["https://terminalsandbox.pages.dev/","http://localhost:10000","http://localhost:3000"]
+    origin = request.headers.get("origin") or request.headers.get("referer")
+
+    if origin and not any(origin.startswith(allowed) for allowed in allowed_origins):
+        return JSONResponse(status_code=403, content={"error": "Unauthorized origin"})
+    
+    return await call_next(request)
+
+# 🧾 Middleware: Log client IPs
 @app.middleware("http")
 async def log_ip_address(request: Request, call_next):
     x_forwarded_for = request.headers.get('x-forwarded-for')
@@ -31,7 +52,7 @@ app.include_router(exec_router, prefix="")
 app.include_router(session_router, prefix="")
 app.include_router(meta_router, prefix="")
 
-# Root endpoint
+# Root
 @app.get("/")
 def root():
     return {
@@ -47,7 +68,7 @@ def root():
         ],
         "endpoints": {
             "POST /create-session": "Create new terminal session",
-            "POST /exec": "Execute safe commands", 
+            "POST /exec": "Execute safe commands",
             "GET /allowed-commands": "List allowed commands",
             "GET /sessions": "List active sessions",
             "DELETE /session/{id}": "Delete session"

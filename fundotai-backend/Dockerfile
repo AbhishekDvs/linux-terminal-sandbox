@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
 COPY . /app
 
 # Install Python dependencies (removed docker package)
-RUN pip install --no-cache-dir fastapi uvicorn[standard] httpx
+RUN pip install --no-cache-dir fastapi uvicorn[standard] httpx slowapi
 
 # Create app user for security (optional but recommended)
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
