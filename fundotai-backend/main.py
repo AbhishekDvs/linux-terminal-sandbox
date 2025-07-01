@@ -21,7 +21,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # CORS Middleware (optional: restrict in prod)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://terminalsandbox.pages.dev/","http://localhost:10000","http://localhost:3000"],  # ✅ restrict to your deployed frontend
+    allow_origins=["https://terminalsandbox.pages.dev/"],  # ✅ restrict to your deployed frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +30,7 @@ app.add_middleware(
 # 🛡️ Middleware: Origin-based protection
 @app.middleware("http")
 async def block_unknown_origins(request: Request, call_next):
-    allowed_origins = ["https://terminalsandbox.pages.dev/","http://localhost:10000","http://localhost:3000"]
+    allowed_origins = ["https://terminalsandbox.pages.dev/"]
     origin = request.headers.get("origin") or request.headers.get("referer")
 
     if origin and not any(origin.startswith(allowed) for allowed in allowed_origins):
