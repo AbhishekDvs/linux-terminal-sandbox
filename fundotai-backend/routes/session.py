@@ -5,13 +5,17 @@ from fastapi.responses import JSONResponse
 import time
 import uuid
 import tempfile
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from utils.logger import logger
 from utils.session_manager import create_session, delete_session, list_sessions
 
 router = APIRouter()
 
+limiter = Limiter(key_func=get_remote_address)
 @router.post("/create-session")
+@limiter.limit("5/minute")
 def create_session_route(req: dict, request: Request):
     try:
         x_forwarded_for = request.headers.get("x-forwarded-for")
@@ -38,10 +42,12 @@ def create_session_route(req: dict, request: Request):
 
 
 @router.delete("/session/{session_id}")
+@limiter.limit("5/minute")
 def delete_session_route(session_id: str):
     return delete_session(session_id)
 
 
 @router.get("/sessions")
+@limiter.limit("5/minute")
 def get_all_sessions():
     return list_sessions()

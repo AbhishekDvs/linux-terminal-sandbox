@@ -5,14 +5,17 @@ from fastapi.responses import JSONResponse
 import subprocess
 import time
 import shlex
-
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from utils.logger import logger
 from utils.command_validator import is_command_safe
 from utils.session_manager import get_session, update_session_usage, can_execute
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/exec")
+@limiter.limit("5/minute")
 def execute_command(req: dict, request: Request):
     start_time = time.time()
     session_id = req.get("session_id")

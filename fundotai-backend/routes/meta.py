@@ -2,12 +2,16 @@
 
 from fastapi import APIRouter
 import time
-
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from utils.command_validator import ALLOWED_COMMANDS, COMMAND_DESCRIPTIONS, COMMAND_CATEGORIES
 
+
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 @router.get("/")
+@limiter.limit("5/minute")
 def root():
     return {
         "status": "🚀SafeShell Sandbox Terminal API - Safe & Secure",
@@ -30,6 +34,7 @@ def root():
     }
 
 @router.get("/allowed-commands")
+@limiter.limit("5/minute")
 def allowed_commands():
     grouped = {category: [] for category in COMMAND_CATEGORIES.keys()}
     grouped["other"] = []
@@ -47,5 +52,6 @@ def allowed_commands():
     return {"grouped_commands": grouped, "total_count": len(ALLOWED_COMMANDS)}
 
 @router.get("/health")
+@limiter.limit("5/minute")
 def health():
     return {"status": "healthy", "timestamp": time.time()}
