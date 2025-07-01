@@ -34,26 +34,26 @@ export default function TerminalPage() {
     terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
   }, [history]);
 
-  // useEffect(() => {
-  //   const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-  //   const handleKeyDown = (e: KeyboardEvent) => {
-  //     if (
-  //       e.key === 'F12' ||
-  //       (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
-  //       (e.ctrlKey && e.key === 'U')
-  //     ) {
-  //       e.preventDefault();
-  //     }
-  //   };
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        e.preventDefault();
+      }
+    };
 
-  //   document.addEventListener('contextmenu', handleContextMenu);
-  //   document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
 
-  //   return () => {
-  //     document.removeEventListener('contextmenu', handleContextMenu);
-  //     document.removeEventListener('keydown', handleKeyDown);
-  //   };
-  // }, []);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
