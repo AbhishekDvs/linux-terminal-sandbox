@@ -42,12 +42,10 @@ def create_session_route(req: dict, request: Request):
 
 
 @router.delete("/session/{session_id}")
-@limiter.limit("5/minute")
 def delete_session_route(session_id: str):
     return delete_session(session_id)
 
 
 @router.get("/sessions")
-@limiter.limit("5/minute")
 def get_all_sessions():
     return list_sessions()
