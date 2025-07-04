@@ -82,7 +82,7 @@ npm run dev
 │   ├── routes/            # API routes
 │   ├── utils/             # Helpers and command validation
 │   └── main.py            # Entrypoint
-└── terminal-frontend/     # Next.js frontend
+└── fundotai-frontend/     # Next.js frontend
     └── app/terminal/      # Main page and UI logic
 ```
 
