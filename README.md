@@ -83,7 +83,7 @@ npm run dev
 │   ├── utils/             # Helpers and command validation
 │   └── main.py            # Entrypoint
 └── fundotai-frontend/     # Next.js frontend
-    └── app/terminal/      # Main page and UI logic
+    └── /      # Main page and UI logic
 ```
 
 ---
