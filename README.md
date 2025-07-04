@@ -105,7 +105,7 @@ This project was built as a safe playground for learning Linux commands without 
 
 ## 📜 License
 
-[MIT](LICENSE)
+[GNU Affero General Public License v3.0 (AGPL-3.0)]
 
 ---
 
